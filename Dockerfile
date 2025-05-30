@@ -8,13 +8,20 @@ RUN apt-get update && \
         curl \
         pkg-config \
         libssl-dev \
-        emscripten \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Emscripten via emsdk
+RUN git clone https://github.com/emscripten-core/emsdk.git /emsdk && \
+    cd /emsdk && \
+    git pull && \
+    ./emsdk install latest && \
+    ./emsdk activate latest && \
+    echo 'source /emsdk/emsdk_env.sh' >> /root/.bashrc
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-    /root/.cargo/bin/rustup target add wasm32-unknown-unknown
-ENV PATH="/root/.cargo/bin:${PATH}"
+    rustup target add wasm32-unknown-unknown
+ENV PATH="/root/.cargo/bin:/emsdk:/emsdk/upstream/emscripten:${PATH}"
 
 # Create app directory
 WORKDIR /app
